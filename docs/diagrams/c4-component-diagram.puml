@@ -1,0 +1,100 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title C4 Component Diagram - EMS API Application
+
+Container(web_app, "Web Application", "Thymeleaf", "Server-side rendered UI")
+Container(db, "MySQL Database", "MySQL 8.x", "Data persistence")
+System_Ext(email, "Email Service", "Gmail SMTP")
+
+Container_Boundary(api_app, "API Application - Spring Boot") {
+
+    Component(auth_controller, "AuthController", "Spring MVC", "Handles login, registration")
+    Component(user_controller, "UserController", "Spring MVC", "User CRUD operations")
+    Component(emp_controller, "EmployeeController", "Spring MVC", "Employee management")
+    Component(leave_controller, "LeaveController", "Spring MVC", "Leave request management")
+    Component(dashboard_controller, "DashboardController", "Spring MVC", "Dashboard statistics")
+
+    Component(auth_service, "AuthenticationService", "Spring Service", "Authentication logic")
+    Component(user_service, "UserService", "Spring Service", "User business logic, @Cacheable")
+    Component(emp_service, "EmployeeService", "Spring Service", "Employee logic, CSV import/export")
+    Component(leave_service, "LeaveService", "Spring Service", "Leave balance & requests")
+    Component(email_service, "EmailService", "Spring Service", "Email sending logic")
+    Component(pwd_reset_service, "PasswordResetService", "Spring Service", "Password reset flow")
+    Component(email_verify_service, "EmailVerificationService", "Spring Service", "Email verification flow")
+
+    Component(sec_config, "SecurityConfig", "Spring Security", "Filter chains, basic auth for actuator")
+    Component(user_details_service, "CustomUserDetailsService", "UserDetailsService", "User loading with caching")
+    Component(access_denied_handler, "CustomAccessDeniedHandler", "AccessDeniedHandler", "403 handling")
+    Component(rate_limit, "RateLimitAspect", "AspectJ", "Rate limiting annotation aspect")
+
+    Component(user_repo, "UserRepository", "JPA Repository", "User data access")
+    Component(emp_repo, "EmployeeRepository", "JPA Repository", "Employee data access")
+    Component(role_repo, "RoleRepository", "JPA Repository", "Role data access")
+    Component(auth_repo, "AuthorityRepository", "JPA Repository", "Authority data access")
+    Component(leave_req_repo, "LeaveRequestRepository", "JPA Repository", "Leave request access")
+    Component(leave_bal_repo, "LeaveBalanceRepository", "JPA Repository", "Leave balance access")
+
+    Component(cache_config, "CacheConfig", "Spring @Configuration", "Ehcache configuration")
+    Component(mail_config, "MailConfig", "Spring @Configuration", "Mail sender configuration")
+    Component(data_init, "DataInitializer", "ApplicationRunner", "Initial data seeding")
+    Component(ex_handler, "GlobalExceptionHandler", "@ControllerAdvice", "Global exception handling")
+
+    Component(user_mapper, "UserMapper", "MapStruct", "User DTO/Entity mapping")
+    Component(emp_mapper, "EmployeeMapper", "MapStruct", "Employee DTO/Entity mapping")
+}
+
+' Controller to Service relationships
+Rel(auth_controller, auth_service, "Uses")
+Rel(user_controller, user_service, "Uses")
+Rel(emp_controller, emp_service, "Uses")
+Rel(leave_controller, leave_service, "Uses")
+Rel(dashboard_controller, emp_repo, "Uses")
+Rel(dashboard_controller, user_repo, "Uses")
+
+' Service to Repository relationships
+Rel(user_service, user_repo, "Uses")
+Rel(user_service, emp_repo, "Uses")
+Rel(user_service, role_repo, "Uses")
+Rel(user_service, auth_repo, "Uses")
+Rel(user_service, email_verify_service, "Uses")
+
+Rel(emp_service, emp_repo, "Uses")
+Rel(emp_service, user_service, "Uses")
+
+Rel(leave_service, leave_req_repo, "Uses")
+Rel(leave_service, leave_bal_repo, "Uses")
+Rel(leave_service, emp_repo, "Uses")
+
+Rel(email_service, email, "Sends via")
+Rel(auth_service, user_repo, "Uses")
+Rel(auth_service, pwd_reset_service, "Uses")
+Rel(pwd_reset_service, email_service, "Uses")
+Rel(pwd_reset_service, user_repo, "Uses")
+
+' Security relationships
+Rel(sec_config, user_details_service, "Uses")
+Rel(user_details_service, user_repo, "Uses")
+
+' Web app connections
+Rel(web_app, auth_controller, "Calls", "REST/JSON")
+Rel(web_app, user_controller, "Calls", "REST/JSON")
+Rel(web_app, emp_controller, "Calls", "REST/JSON")
+
+' Database connections
+Rel(user_repo, db, "JPA/Hibernate")
+Rel(emp_repo, db, "JPA/Hibernate")
+Rel(role_repo, db, "JPA/Hibernate")
+Rel(auth_repo, db, "JPA/Hibernate")
+Rel(leave_req_repo, db, "JPA/Hibernate")
+Rel(leave_bal_repo, db, "JPA/Hibernate")
+
+' Infrastructure
+Rel(ex_handler, auth_controller, "Handles exceptions from", "AspectJ")
+Rel(rate_limit, auth_controller, "Rate limits")
+
+SHOW_LEGEND()
+
+@enduml

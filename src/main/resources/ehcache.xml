@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.ehcache.org/v3"
+        xsi:schemaLocation="http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core-3.0.xsd">
+
+    <!-- Rate limiting cache -->
+    <cache alias="rate-limit-buckets">
+        <expiry>
+            <ttl unit="hours">1</ttl>
+        </expiry>
+        <heap unit="entries">10000</heap>
+    </cache>
+
+    <!-- User session cache -->
+    <cache alias="user-session-cache">
+        <expiry>
+            <ttl unit="hours">24</ttl>
+        </expiry>
+        <heap unit="entries">1000</heap>
+    </cache>
+
+    <!-- Employee cache -->
+    <cache alias="employees">
+        <expiry>
+            <ttl unit="minutes">30</ttl>
+        </expiry>
+        <heap unit="entries">5000</heap>
+    </cache>
+
+    <!-- User cache -->
+    <cache alias="users">
+        <expiry>
+            <ttl unit="minutes">30</ttl>
+        </expiry>
+        <heap unit="entries">5000</heap>
+    </cache>
+
+    <!-- User lookup by username cache -->
+    <cache alias="users-by-username">
+        <expiry>
+            <ttl unit="minutes">30</ttl>
+        </expiry>
+        <heap unit="entries">5000</heap>
+    </cache>
+
+    <!-- User entity lookup by username cache -->
+    <cache alias="user-entities-by-username">
+        <expiry>
+            <ttl unit="minutes">30</ttl>
+        </expiry>
+        <heap unit="entries">5000</heap>
+    </cache>
+
+    <!-- User entity lookup by email cache -->
+    <cache alias="user-entities-by-email">
+        <expiry>
+            <ttl unit="minutes">30</ttl>
+        </expiry>
+        <heap unit="entries">5000</heap>
+    </cache>
+
+    <!-- Email verification tokens cache -->
+    <cache alias="email-verification-tokens">
+        <expiry>
+            <ttl unit="hours">24</ttl>
+        </expiry>
+        <heap unit="entries">10000</heap>
+    </cache>
+
+    <!-- Password reset tokens cache -->
+    <cache alias="password-reset-tokens">
+        <expiry>
+            <ttl unit="hours">24</ttl>
+        </expiry>
+        <heap unit="entries">10000</heap>
+    </cache>
+
+    <!-- Roles and authorities cache -->
+    <cache alias="roles">
+        <expiry>
+            <ttl unit="hours">6</ttl>
+        </expiry>
+        <heap unit="entries">1000</heap>
+    </cache>
+
+    <cache alias="authorities">
+        <expiry>
+            <ttl unit="hours">6</ttl>
+        </expiry>
+        <heap unit="entries">1000</heap>
+    </cache>
+
+    <!-- Department cache for reporting -->
+    <cache alias="departments">
+        <expiry>
+            <ttl unit="hours">2</ttl>
+        </expiry>
+        <heap unit="entries">100</heap>
+    </cache>
+
+    <!-- Job titles cache -->
+    <cache alias="job-titles">
+        <expiry>
+            <ttl unit="hours">2</ttl>
+        </expiry>
+        <heap unit="entries">500</heap>
+    </cache>
+
+    <!-- Cache for paginated results -->
+    <cache alias="paginated-employees">
+        <expiry>
+            <ttl unit="minutes">10</ttl>
+        </expiry>
+        <heap unit="entries">1000</heap>
+    </cache>
+
+    <cache alias="paginated-users">
+        <expiry>
+            <ttl unit="minutes">10</ttl>
+        </expiry>
+        <heap unit="entries">1000</heap>
+    </cache>
+
+</config>

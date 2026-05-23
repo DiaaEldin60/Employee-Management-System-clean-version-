@@ -1,0 +1,1024 @@
+openapi: 3.0.3
+info:
+  title: Employee Management System API
+  description: |
+    RESTful API for managing employees, users, leave requests, and authentication.
+    
+    Features:
+    - Employee CRUD operations with CSV import/export
+    - User management with role-based access control
+    - Leave request workflow with approval/rejection
+    - Email verification and password reset
+    - Rate limiting and caching
+  version: 1.0.0
+  contact:
+    name: EMS Development Team
+  license:
+    name: MIT License
+
+servers:
+  - url: https://employee-management-system-production-2a1a.up.railway.app/api/v1
+    description: Production server (Railway)
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+
+security:
+  - cookieAuth: []
+
+tags:
+  - name: Authentication
+    description: User login and registration
+  - name: Employee Management
+    description: Employee CRUD operations
+  - name: User Management
+    description: User account management
+  - name: Leave Management
+    description: Leave requests and balance
+  - name: Password Reset
+    description: Password reset flow
+  - name: Email Verification
+    description: Email verification flow
+
+paths:
+  # Authentication
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Register a new user with an existing employee ID
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterEmployeeRequest'
+      responses:
+        '200':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      description: Authenticate a user and create a session
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Employee Management
+  /employees:
+    get:
+      tags:
+        - Employee Management
+      summary: Get all employees
+      description: Retrieve paginated list of employees with optional filtering
+      operationId: getAllEmployees
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 20
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            default: id
+        - name: firstName
+          in: query
+          schema:
+            type: string
+        - name: lastName
+          in: query
+          schema:
+            type: string
+        - name: email
+          in: query
+          schema:
+            type: string
+        - name: department
+          in: query
+          schema:
+            type: string
+        - name: minSalary
+          in: query
+          schema:
+            type: number
+            format: float
+        - name: maxSalary
+          in: query
+          schema:
+            type: number
+            format: float
+      responses:
+        '200':
+          description: Employees retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedEmployeeDto'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Employee Management
+      summary: Create employee
+      description: Create a new employee with user credentials (ADMIN only)
+      operationId: createEmployee
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeWithUserCreationDto'
+      responses:
+        '201':
+          description: Employee created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDto'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URL of the newly created employee
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /employees/{id}:
+    get:
+      tags:
+        - Employee Management
+      summary: Get employee by ID
+      operationId: getEmployeeById
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Employee retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDto'
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Employee Management
+      summary: Update employee (full)
+      operationId: updateEmployee
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeDto'
+      responses:
+        '200':
+          description: Employee updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDto'
+
+    patch:
+      tags:
+        - Employee Management
+      summary: Update employee (partial)
+      operationId: patchUpdateEmployee
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Employee updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDto'
+
+    delete:
+      tags:
+        - Employee Management
+      summary: Delete employee
+      operationId: deleteEmployee
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Employee deleted successfully
+
+  /employees/upload:
+    post:
+      tags:
+        - Employee Management
+      summary: Upload employees from CSV
+      operationId: uploadEmployees
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Employees uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  count:
+                    type: integer
+                  employees:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Employee'
+
+  /employees/export:
+    get:
+      tags:
+        - Employee Management
+      summary: Export employees to CSV
+      operationId: exportEmployees
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+
+  # User Management
+  /users:
+    get:
+      tags:
+        - User Management
+      summary: Get all users
+      operationId: getAllUsers
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 20
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            default: id
+      responses:
+        '200':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedUserDto'
+
+  /users/{id}:
+    get:
+      tags:
+        - User Management
+      summary: Get user by ID
+      operationId: getUserById
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+
+    put:
+      tags:
+        - User Management
+      summary: Update user
+      operationId: updateUser
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDto'
+      responses:
+        '200':
+          description: User updated successfully
+
+    delete:
+      tags:
+        - User Management
+      summary: Delete user
+      operationId: deleteUser
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: User deleted successfully
+
+  /users/create-with-temp-password:
+    post:
+      tags:
+        - User Management
+      summary: Create user with temporary password
+      operationId: createUserWithTemporaryPassword
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '200':
+          description: User created successfully
+
+  /users/{id}/roles:
+    put:
+      tags:
+        - User Management
+      summary: Update user roles
+      operationId: updateUserRoles
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleUpdateRequest'
+      responses:
+        '200':
+          description: User roles updated successfully
+
+  # Leave Management
+  /leave/balance/{employeeId}:
+    get:
+      tags:
+        - Leave Management
+      summary: Get leave balance
+      operationId: getLeaveBalance
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Leave balance retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaveBalance'
+
+  /leave/request:
+    post:
+      tags:
+        - Leave Management
+      summary: Create leave request
+      operationId: createLeaveRequest
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: employeeId
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: leaveType
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [ANNUAL, SICK, EMERGENCY]
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: reason
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Leave request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaveRequest'
+
+  /leave/requests/{requestId}/approve:
+    post:
+      tags:
+        - Leave Management
+      summary: Approve leave request
+      operationId: approveLeaveRequest
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Leave request approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaveRequest'
+
+  /leave/requests/{requestId}/reject:
+    post:
+      tags:
+        - Leave Management
+      summary: Reject leave request
+      operationId: rejectLeaveRequest
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: rejectionReason
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Leave request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaveRequest'
+
+  # Password Reset
+  /password-reset/request:
+    post:
+      tags:
+        - Password Reset
+      summary: Request password reset
+      operationId: requestPasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Password reset email sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /password-reset/validate:
+    post:
+      tags:
+        - Password Reset
+      summary: Validate reset code
+      operationId: validateResetToken
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Code is valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /password-reset/confirm:
+    post:
+      tags:
+        - Password Reset
+      summary: Confirm password reset
+      operationId: confirmPasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                newPassword:
+                  type: string
+                  minLength: 6
+      responses:
+        '200':
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  # Email Verification
+  /email-verification/send:
+    post:
+      tags:
+        - Email Verification
+      summary: Send verification email
+      operationId: sendVerificationEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+      responses:
+        '200':
+          description: Verification email sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /email-verification/verify:
+    post:
+      tags:
+        - Email Verification
+      summary: Verify email
+      operationId: verifyEmail
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: JSESSIONID
+      description: Session-based authentication
+
+  schemas:
+    # Request/Response schemas
+    RegisterEmployeeRequest:
+      type: object
+      required:
+        - username
+        - password
+        - employeeId
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          example: "john.doe"
+        password:
+          type: string
+          minLength: 6
+          example: "change_me"
+        employeeId:
+          type: integer
+          example: 1
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: "admin"
+        email:
+          type: string
+          format: email
+          example: "admin@example.com"
+        password:
+          type: string
+          example: "change_me"
+
+    AuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Login successful"
+        success:
+          type: boolean
+          example: true
+
+    EmployeeDto:
+      type: object
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        phoneNumber:
+          type: string
+          example: "1234567890"
+        hireDate:
+          type: string
+          format: date
+          example: "2023-01-15"
+        jobTitle:
+          type: string
+          example: "Software Engineer"
+        salary:
+          type: number
+          format: float
+          example: 75000.00
+        department:
+          type: string
+          example: "IT"
+
+    EmployeeWithUserCreationDto:
+      type: object
+      properties:
+        employee:
+          $ref: '#/components/schemas/EmployeeDto'
+        username:
+          type: string
+        temporaryPassword:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        authorities:
+          type: array
+          items:
+            type: string
+
+    Employee:
+      type: object
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+
+    PagedEmployeeDto:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeDto'
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        pageable:
+          type: object
+          properties:
+            pageNumber:
+              type: integer
+            pageSize:
+              type: integer
+
+    UserDto:
+      type: object
+      properties:
+        id:
+          type: integer
+        userName:
+          type: string
+          example: "john.doe"
+        enabled:
+          type: boolean
+          example: true
+        temporaryPassword:
+          type: boolean
+          example: false
+        emailVerified:
+          type: boolean
+          example: true
+        roles:
+          type: array
+          items:
+            type: string
+
+    PagedUserDto:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserDto'
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+
+    CreateUserRequest:
+      type: object
+      properties:
+        employeeId:
+          type: integer
+        username:
+          type: string
+        temporaryPassword:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        authorities:
+          type: array
+          items:
+            type: string
+
+    RoleUpdateRequest:
+      type: object
+      properties:
+        userId:
+          type: integer
+        roleNames:
+          type: array
+          items:
+            type: string
+          example: ["MANAGER", "EMPLOYEE"]
+
+    LeaveBalance:
+      type: object
+      properties:
+        id:
+          type: integer
+        annualLeave:
+          type: integer
+          example: 20
+        emergencyLeave:
+          type: integer
+          example: 5
+        sickLeave:
+          type: integer
+          example: 10
+
+    LeaveRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+        employeeId:
+          type: integer
+        leaveType:
+          type: string
+          enum: [ANNUAL, SICK, EMERGENCY]
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        daysCount:
+          type: integer
+        reason:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, APPROVED, REJECTED]
+        approvedBy:
+          type: string
+        approvedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        validationErrors:
+          type: object
+          additionalProperties:
+            type: string
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

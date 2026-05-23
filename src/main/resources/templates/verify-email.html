@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Email</title>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+<section>
+
+    <form action="/verify-email" method="post" th:object="${verificationRequest}">
+
+        <!-- CSRF -->
+        <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+        <h1>Verify Your Email</h1>
+
+        <!-- Success Message -->
+        <div th:if="${message}" class="success-message" style="color: green; margin-bottom: 15px; text-align: center; padding: 10px; border: 1px solid #4CAF50; background-color: #e8f5e9; border-radius: 5px;">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <span th:text="${message}">Success message</span>
+        </div>
+
+        <!-- Error Message -->
+        <div th:if="${error}" class="error-message" style="color: red; margin-bottom: 15px; text-align: center; padding: 10px; border: 1px solid #ff6b6b; background-color: #ffe0e0; border-radius: 5px;">
+            <ion-icon name="warning-outline"></ion-icon>
+            <span th:text="${error}">Error occurred</span>
+        </div>
+
+        <p style="text-align: center; margin-bottom: 20px; color: #666;">
+            Enter the 6-digit verification code sent to your email.
+        </p>
+
+        <!-- VERIFICATION CODE -->
+        <div class="inputbox">
+            <ion-icon name="key-outline"></ion-icon>
+            <input type="text" th:field="*{code}" required maxlength="6" pattern="[0-9]{6}" placeholder="123456">
+            <label>Verification Code</label>
+        </div>
+        <p style="color:red; font-size: 12px; margin-top: -10px; margin-bottom: 10px;" th:errors="*{code}"></p>
+
+        <button type="submit">Verify Email</button>
+
+        <!-- RESEND BUTTON -->
+        <div style="text-align: center; margin-top: 20px;">
+            <p style="color: #666;">Didn't receive the code?</p>
+            <form action="/resend-verification" method="post">
+                <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                <button type="submit" style="background: transparent; border: 1px solid #007bff; color: #007bff; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                    Resend Code
+                </button>
+            </form>
+            <p style="font-size: 12px; color: #999; margin-top: 5px;">(3 trials per hour)</p>
+        </div>
+
+        <div class="register">
+            <p><a href="/login">Back to Login</a></p>
+        </div>
+
+    </form>
+
+</section>
+</body>
+</html>

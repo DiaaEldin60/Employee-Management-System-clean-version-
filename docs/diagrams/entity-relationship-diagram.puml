@@ -1,0 +1,152 @@
+@startuml
+!theme plain
+
+skinparam class {
+    BackgroundColor #E8F4FD
+    BorderColor #2980B9
+}
+
+title Entity Relationship Diagram - Employee Management System
+
+entity "users" {
+    * id : INT <<PK>>
+    ---
+    * username : VARCHAR(50) <<UQ>>
+    * password : VARCHAR(255)
+    * enabled : BOOLEAN <<"DEFAULT true">>
+    * is_temporary_password : BOOLEAN
+    * email_verified : BOOLEAN <<"DEFAULT false">>
+    * created_at : DATETIME
+    updated_at : DATETIME
+}
+
+entity "employees" {
+    * id : INT <<PK>>
+    ---
+    * first_name : VARCHAR(100)
+    * last_name : VARCHAR(100)
+    * email : VARCHAR(150) <<UQ>>
+    phone_number : VARCHAR(20)
+    * hire_date : DATE
+    job_title : VARCHAR(100)
+    salary : FLOAT
+    department : VARCHAR(100)
+    * user_id : INT <<FK>> <<UQ>>
+    * created_at : DATETIME
+    updated_at : DATETIME
+}
+
+entity "roles" {
+    * id : INT <<PK>>
+    ---
+    * role : VARCHAR(50) <<UQ>>
+}
+
+entity "authorities" {
+    * id : INT <<PK>>
+    ---
+    * name : VARCHAR(50) <<UQ>>
+}
+
+entity "user_roles" {
+    * user_id : INT <<FK>> <<PK>>
+    * role_id : INT <<FK>> <<PK>>
+}
+
+entity "role_authorities" {
+    * role_id : INT <<FK>> <<PK>>
+    * authority_id : INT <<FK>> <<PK>>
+}
+
+entity "leave_requests" {
+    * id : INT <<PK>>
+    ---
+    * employee_id : INT <<FK>>
+    * leave_type : ENUM('ANNUAL', 'SICK', 'EMERGENCY')
+    * start_date : DATE
+    * end_date : DATE
+    * days_count : INT
+    reason : TEXT
+    * status : ENUM('PENDING', 'APPROVED', 'REJECTED')
+    approved_by : INT <<FK>>
+    approved_at : DATETIME
+    rejection_reason : TEXT
+    * created_at : DATETIME
+}
+
+entity "leave_balances" {
+    * id : INT <<PK>>
+    ---
+    * employee_id : INT <<FK>> <<UQ>>
+    annual_leave : INT <<"DEFAULT 20">>
+    emergency_leave : INT <<"DEFAULT 5">>
+    sick_leave : INT <<"DEFAULT 10">>
+}
+
+entity "email_verification_tokens" {
+    * id : INT <<PK>>
+    ---
+    * token : VARCHAR(255) <<UQ>>
+    * user_id : INT <<FK>>
+    * expiry_date : DATETIME
+    * created_at : DATETIME
+}
+
+entity "password_reset_tokens" {
+    * id : INT <<PK>>
+    ---
+    * token : VARCHAR(255) <<UQ>>
+    * user_id : INT <<FK>>
+    * expiry_date : DATETIME
+    * created_at : DATETIME
+}
+
+' Relationships
+users ||--|| employees : "1:1 - user_id FK"
+users ||--o{ user_roles : "1:N"
+roles ||--o{ user_roles : "1:N"
+roles ||--o{ role_authorities : "1:N"
+authorities ||--o{ role_authorities : "1:N"
+employees ||--o{ leave_requests : "1:N - employee_id FK"
+employees ||--|| leave_balances : "1:1 - employee_id FK"
+users ||--o{ email_verification_tokens : "1:N - user_id FK"
+users ||--o{ password_reset_tokens : "1:N - user_id FK"
+
+' Indexes notes
+note right of users
+  Indexes:
+  - idx_user_username (unique)
+  - idx_user_enabled
+end note
+
+note right of employees
+  Indexes:
+  - idx_employee_email
+  - idx_employee_department
+  - idx_employee_hire_date
+end note
+
+note right of roles
+  Indexes:
+  - idx_role (unique)
+end note
+
+note bottom of leave_requests
+  Constraints:
+  - FK to employees(id)
+  - FK to users(id) for approved_by
+  - Check: end_date >= start_date
+  - Check: days_count > 0
+end note
+
+legend right
+  |= Symbol |= Meaning |
+  | -- | Column separator |
+  | <<PK>> | Primary Key |
+  | <<FK>> | Foreign Key |
+  | <<UQ>> | Unique Constraint |
+  | ||--|| | One-to-One |
+  | ||--o{ | One-to-Many |
+endlegend
+
+@enduml

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Email - Step 1</title>
+
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+<section>
+
+    <form action="/verify-email-step" method="post" th:object="${verifyEmailStepRequest}">
+
+        <!-- CSRF -->
+        <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+        <h1>Step 1: Verify Your Email</h1>
+
+        <!-- Error Message -->
+        <div th:if="${error}" class="error-message" style="color: red; margin-bottom: 15px; text-align: center; padding: 10px; border: 1px solid #ff6b6b; background-color: #ffe0e0; border-radius: 5px;">
+            <ion-icon name="warning-outline"></ion-icon>
+            <span th:text="${error}">Error occurred</span>
+        </div>
+
+        <!-- Success Message -->
+        <div th:if="${message}" class="success-message" style="color: green; margin-bottom: 15px; text-align: center; padding: 10px; border: 1px solid #6bff6b; background-color: #e0ffe0; border-radius: 5px;">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <span th:text="${message}">Success message</span>
+        </div>
+
+        <!-- EMAIL -->
+        <div class="inputbox">
+            <ion-icon name="mail-outline"></ion-icon>
+            <input type="email" th:field="*{email}" required>
+            <label>Email</label>
+        </div>
+        <p style="color:red; font-size: 12px; margin-top: -10px; margin-bottom: 10px;" th:errors="*{email}"></p>
+
+        <button type="submit">Send Verification Email</button>
+
+        <div class="register">
+            <form action="/logout" method="post" style="display: inline;">
+                <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                <button type="submit" class="button-link" style="background: none; border: none; color: inherit; cursor: pointer; text-decoration: underline; padding: 0;">Back to Login</button>
+            </form>
+        </div>
+
+    </form>
+
+</section>
+</body>
+</html>

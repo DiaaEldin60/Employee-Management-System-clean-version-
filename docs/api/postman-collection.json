@@ -1,0 +1,633 @@
+{
+  "info": {
+    "name": "Employee Management System API",
+    "description": "Complete API collection for Employee Management System including authentication, employee management, user management, and leave management endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "ems-api-collection-2024"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"change_me\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john.doe\",\n  \"password\": \"change_me\",\n  \"employeeId\": 1\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employee Management",
+      "item": [
+        {
+          "name": "Get All Employees",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/employees?page=0&size=10&sortBy=id",
+              "host": ["{{base_url}}"],
+              "path": ["employees"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "id"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Employee by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/employees/{{employee_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["employees", "{{employee_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/employees",
+              "host": ["{{base_url}}"],
+              "path": ["employees"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employee\": {\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Smith\",\n    \"email\": \"jane.smith@example.com\",\n    \"phoneNumber\": \"0987654321\",\n    \"hireDate\": \"2024-01-15\",\n    \"jobTitle\": \"Project Manager\",\n    \"salary\": 85000.00,\n    \"department\": \"Management\"\n  },\n  \"username\": \"jane.smith\",\n  \"temporaryPassword\": \"change_me\",\n  \"roles\": [\"MANAGER\"],\n  \"authorities\": [\"EMPLOYEE_READ\", \"EMPLOYEE_WRITE\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Employee (Full)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/employees/{{employee_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["employees", "{{employee_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phoneNumber\": \"1234567890\",\n  \"hireDate\": \"2023-01-15\",\n  \"jobTitle\": \"Senior Software Engineer\",\n  \"salary\": 90000.00,\n  \"department\": \"IT\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Employee (Partial)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/employees/{{employee_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["employees", "{{employee_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salary\": 95000.00,\n  \"jobTitle\": \"Lead Software Engineer\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Employee",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/employees/{{employee_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["employees", "{{employee_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Upload Employees CSV",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/employees/upload",
+              "host": ["{{base_url}}"],
+              "path": ["employees", "upload"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "employees.csv"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Export Employees CSV",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/employees/export",
+              "host": ["{{base_url}}"],
+              "path": ["employees", "export"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/users?page=0&size=10&sortBy=id",
+              "host": ["{{base_url}}"],
+              "path": ["users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "id"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create User with Temp Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/create-with-temp-password",
+              "host": ["{{base_url}}"],
+              "path": ["users", "create-with-temp-password"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": 1,\n  \"username\": \"john.doe\",\n  \"temporaryPassword\": \"change_me\",\n  \"roles\": [\"EMPLOYEE\"],\n  \"authorities\": [\"EMPLOYEE_READ\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{user_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userName\": \"john.doe.updated\",\n  \"enabled\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update User Roles",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}/roles",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{user_id}}", "roles"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roleNames\": [\"MANAGER\", \"EMPLOYEE\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Export Users CSV",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/users/export",
+              "host": ["{{base_url}}"],
+              "path": ["users", "export"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Leave Management",
+      "item": [
+        {
+          "name": "Get Leave Balance",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/leave/balance/{{employee_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["leave", "balance", "{{employee_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Leave Request",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/leave/request?employeeId={{employee_id}}&leaveType=ANNUAL&startDate=2024-06-01&endDate=2024-06-05&reason=Vacation",
+              "host": ["{{base_url}}"],
+              "path": ["leave", "request"],
+              "query": [
+                {
+                  "key": "employeeId",
+                  "value": "{{employee_id}}"
+                },
+                {
+                  "key": "leaveType",
+                  "value": "ANNUAL"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2024-06-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-06-05"
+                },
+                {
+                  "key": "reason",
+                  "value": "Vacation"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Leave Requests by Employee",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/leave/requests/{{employee_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["leave", "requests", "{{employee_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Pending Leave Requests",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/leave/requests/pending",
+              "host": ["{{base_url}}"],
+              "path": ["leave", "requests", "pending"]
+            }
+          }
+        },
+        {
+          "name": "Get All Leave Requests",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/leave/requests",
+              "host": ["{{base_url}}"],
+              "path": ["leave", "requests"]
+            }
+          }
+        },
+        {
+          "name": "Approve Leave Request",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/leave/requests/{{request_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["leave", "requests", "{{request_id}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Reject Leave Request",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/leave/requests/{{request_id}}/reject?rejectionReason=Insufficient leave balance",
+              "host": ["{{base_url}}"],
+              "path": ["leave", "requests", "{{request_id}}", "reject"],
+              "query": [
+                {
+                  "key": "rejectionReason",
+                  "value": "Insufficient leave balance"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Password Reset",
+      "item": [
+        {
+          "name": "Request Password Reset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/password-reset/request",
+              "host": ["{{base_url}}"],
+              "path": ["password-reset", "request"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Validate Reset Code",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/password-reset/validate?code=abc123xyz",
+              "host": ["{{base_url}}"],
+              "path": ["password-reset", "validate"],
+              "query": [
+                {
+                  "key": "code",
+                  "value": "abc123xyz"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Confirm Password Reset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/password-reset/confirm",
+              "host": ["{{base_url}}"],
+              "path": ["password-reset", "confirm"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"abc123xyz\",\n  \"newPassword\": \"NewSecurePass123!\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Email Verification",
+      "item": [
+        {
+          "name": "Send Verification Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/email-verification/send",
+              "host": ["{{base_url}}"],
+              "path": ["email-verification", "send"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john.doe\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Send Verification Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/email-verification/resend",
+              "host": ["{{base_url}}"],
+              "path": ["email-verification", "resend"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john.doe\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/email-verification/verify?code=verify123code",
+              "host": ["{{base_url}}"],
+              "path": ["email-verification", "verify"],
+              "query": [
+                {
+                  "key": "code",
+                  "value": "verify123code"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Check Verification Status",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/email-verification/status?username=john.doe",
+              "host": ["{{base_url}}"],
+              "path": ["email-verification", "status"],
+              "query": [
+                {
+                  "key": "username",
+                  "value": "john.doe"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set default environment variables if not set",
+          "if (!pm.environment.get('base_url')) {",
+          "    pm.environment.set('base_url', 'https://employee-management-system-production-2a1a.up.railway.app/api/v1');",
+          "}",
+          "",
+          "if (!pm.environment.get('employee_id')) {",
+          "    pm.environment.set('employee_id', '1');",
+          "}",
+          "",
+          "if (!pm.environment.get('user_id')) {",
+          "    pm.environment.set('user_id', '1');",
+          "}",
+          "",
+          "if (!pm.environment.get('request_id')) {",
+          "    pm.environment.set('request_id', '1');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://employee-management-system-production-2a1a.up.railway.app/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "employee_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "request_id",
+      "value": "1",
+      "type": "string"
+    }
+  ]
+}

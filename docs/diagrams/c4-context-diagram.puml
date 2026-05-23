@@ -1,0 +1,28 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title C4 Context Diagram - Employee Management System
+
+Person(admin, "Administrator", "Manages employees, users, and system configuration")
+Person(employee, "Employee", "Views own profile, submits leave requests")
+Person(manager, "Manager", "Manages team, approves leave requests, views reports")
+
+System_Boundary(ems, "Employee Management System") {
+    System(ems_app, "EMS Web Application", "Employee management, user authentication, leave management, reporting")
+}
+
+System_Ext(email_system, "Email Service", "Sends verification emails, password resets, notifications via Gmail SMTP")
+System_Ext(monitoring, "Monitoring & Observability", "Metrics collection, dashboards, alerting via Prometheus + Grafana")
+
+Rel(admin, ems_app, "Manages employees and users using", "HTTPS")
+Rel(employee, ems_app, "Views profile and requests leave using", "HTTPS")
+Rel(manager, ems_app, "Manages team and approves requests using", "HTTPS")
+
+Rel(ems_app, email_system, "Sends emails via", "SMTP")
+Rel(monitoring, ems_app, "Scrapes metrics from", "HTTP/8081")
+
+SHOW_LEGEND()
+
+@enduml

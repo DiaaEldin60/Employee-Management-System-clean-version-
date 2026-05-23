@@ -1,0 +1,48 @@
+# MIME type mappings for Jakarta Activation
+# This file fixes the missing mime.types issue in OpenJDK 25
+
+application/atom+xml              atom
+application/javascript            js
+application/json                  json
+application/ld+json               jsonld
+application/pdf                 pdf
+application/rss+xml             rss
+application/vnd.ms-excel        xls
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet   xlsx
+application/vnd.ms-powerpoint   ppt
+application/vnd.openxmlformats-officedocument.presentationml.presentation  pptx
+application/vnd.ms-word         doc
+application/vnd.openxmlformats-officedocument.wordprocessingml.document  docx
+application/xhtml+xml           xhtml
+application/xml                 xml xsd
+application/zip                 zip
+application/gzip                gz tgz
+audio/mpeg                      mp3 mpga
+audio/ogg                       ogg oga
+audio/wav                       wav
+audio/webm                      weba
+image/gif                       gif
+image/jpeg                      jpg jpeg
+image/png                       png
+image/svg+xml                   svg
+image/tiff                      tif tiff
+image/webp                      webp
+image/x-icon                    ico
+multipart/form-data             form-data
+multipart/mixed                 mixed
+multipart/related               related
+text/calendar                   ics
+text/css                        css
+text/csv                        csv
+text/html                       html htm
+text/javascript                 js
+text/markdown                   md markdown
+text/plain                      txt text
+text/richtext                   rtx
+text/tab-separated-values       tsv
+text/xml                        xml
+video/mp4                       mp4
+tideo/mpeg                      mpeg mpg
+tideo/ogg                       ogv
+tideo/webm                      webm
+tideo/x-msvideo                 avi

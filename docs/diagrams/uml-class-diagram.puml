@@ -1,0 +1,268 @@
+@startuml
+!theme plain
+
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor<<Entity>> #E8F4FD
+    BorderColor<<Entity>> #2980B9
+    BackgroundColor<<Service>> #F0F9E8
+    BorderColor<<Service>> #27AE60
+    BackgroundColor<<Controller>> #FEF5E7
+    BorderColor<<Controller>> #E67E22
+    BackgroundColor<<Repository>> #F5EEF8
+    BorderColor<<Repository>> #8E44AD
+}
+
+title Employee Management System - UML Class Diagram
+
+package "Model Layer" {
+    class Users <<Entity>> {
+        - id: int
+        - userName: String
+        - password: String
+        - enabled: boolean
+        - isTemporaryPassword: boolean
+        - emailVerified: boolean
+        - createdAt: LocalDateTime
+        - updatedAt: LocalDateTime
+        + getId(): int
+        + getUserName(): String
+        + isEnabled(): boolean
+        + getRoles(): Set<Roles>
+        + getEmployees(): Employees
+    }
+
+    class Employees <<Entity>> {
+        - id: int
+        - firstName: String
+        - lastName: String
+        - email: String
+        - phoneNumber: String
+        - hireDate: LocalDate
+        - jobTitle: String
+        - salary: float
+        - department: String
+        - createdAt: LocalDateTime
+        - updatedAt: LocalDateTime
+        + getId(): int
+        + getFirstName(): String
+        + getLastName(): String
+        + getEmail(): String
+        + getDepartment(): String
+        + getUser(): Users
+    }
+
+    class Roles <<Entity>> {
+        - id: int
+        - role: String
+        + getId(): int
+        + getRole(): String
+        + getAuthorities(): Set<Authorities>
+    }
+
+    class Authorities <<Entity>> {
+        - id: int
+        - name: String
+        + getId(): int
+        + getName(): String
+    }
+
+    class LeaveRequest <<Entity>> {
+        - id: int
+        - leaveType: LeaveType
+        - startDate: LocalDate
+        - endDate: LocalDate
+        - daysCount: int
+        - reason: String
+        - status: LeaveStatus
+        - createdAt: LocalDateTime
+        + getId(): int
+        + getStatus(): LeaveStatus
+    }
+
+    class LeaveBalance <<Entity>> {
+        - id: int
+        - annualLeave: int
+        - emergencyLeave: int
+        - sickLeave: int
+        + getAnnualLeave(): int
+        + getEmergencyLeave(): int
+        + getSickLeave(): int
+    }
+}
+
+interface "JpaRepository<T, ID>" as JpaRepository
+
+package "Repository Layer" {
+    interface UserRepository <<Repository>> {
+        + findByUserName(username): Optional<Users>
+        + findByEmployeeEmail(email): Optional<Users>
+        + countByEnabled(enabled): long
+    }
+
+    interface EmployeeRepository <<Repository>> {
+        + countDistinctDepartments(): long
+    }
+
+    interface RoleRepository <<Repository>> {
+        + findByRole(role): Optional<Roles>
+    }
+
+    interface AuthorityRepository <<Repository>> {
+        + findByName(name): Optional<Authorities>
+    }
+
+    interface LeaveRequestRepository <<Repository>> {
+        + findByEmployee(employee): List<LeaveRequest>
+        + findByStatus(status): List<LeaveRequest>
+    }
+
+    interface LeaveBalanceRepository <<Repository>> {
+        + findByEmployee(employee): Optional<LeaveBalance>
+    }
+}
+
+package "Service Layer" {
+    class UserService <<Service>> {
+        - userRepository: UserRepository
+        - employeeRepository: EmployeeRepository
+        - roleRepository: RoleRepository
+        - authorityRepository: AuthorityRepository
+        - passwordEncoder: PasswordEncoder
+        + createUserWithTemporaryPassword(): Users
+        + getUserById(id): Users
+        + getAllUsers(pageable): Page<Users>
+        + updateUser(id, user): Users
+        + deleteUser(id): void
+    }
+
+    class EmployeeService <<Service>> {
+        - employeeRepository: EmployeeRepository
+        - userService: UserService
+        + createEmployee(employee): Employees
+        + getEmployeeById(id): Employees
+        + getAllEmployee(pageable): Page<Employees>
+        + updateEmployee(id, employee): Employees
+        + deleteEmployee(id): Employees
+        + filterEmployees(...): Page<Employees>
+    }
+
+    class LeaveService <<Service>> {
+        - leaveBalanceRepository: LeaveBalanceRepository
+        - leaveRequestRepository: LeaveRequestRepository
+        - employeeRepository: EmployeeRepository
+        + createLeaveRequest(...): LeaveRequest
+        + approveLeaveRequest(id, user): LeaveRequest
+        + rejectLeaveRequest(id, user, reason): LeaveRequest
+        + getLeaveBalanceByEmployeeId(id): LeaveBalance
+    }
+
+    class AuthenticationService <<Service>> {
+        - userRepository: UserRepository
+        - passwordEncoder: PasswordEncoder
+        + registerEmployeeToUser(...): void
+        + login(username, email, password): String
+    }
+
+    class EmailService <<Service>> {
+        - javaMailSender: JavaMailSender
+        + sendEmail(to, subject, body): void
+        + sendHtmlEmail(to, subject, htmlBody): void
+    }
+}
+
+package "Controller Layer" {
+    class UserController <<Controller>> {
+        - userService: UserService
+        + createUserWithTemporaryPassword(): ResponseEntity
+        + getAllUsers(): ResponseEntity
+        + getUserById(id): ResponseEntity
+        + updateUser(id): ResponseEntity
+        + deleteUser(id): ResponseEntity
+    }
+
+    class EmployeeController <<Controller>> {
+        - employeeService: EmployeeService
+        + getAll(): ResponseEntity
+        + getEmployeeById(id): ResponseEntity
+        + createEmployee(dto): ResponseEntity
+        + updateEmployee(id, dto): ResponseEntity
+        + patchUpdateEmployee(id, updates): ResponseEntity
+        + deleteEmployee(id): ResponseEntity
+    }
+
+    class LeaveController <<Controller>> {
+        - leaveService: LeaveService
+        + getLeaveBalance(employeeId): ResponseEntity
+        + submitLeaveRequest(): ResponseEntity
+        + approveLeaveRequest(id): ResponseEntity
+        + rejectLeaveRequest(id): ResponseEntity
+    }
+
+    class AuthController <<Controller>> {
+        - authenticationService: AuthenticationService
+        + register(): ResponseEntity
+        + login(): ResponseEntity
+    }
+}
+
+' Entity Relationships
+Users "1" -- "1" Employees : has
+Users "*" -- "*" Roles : has roles
+Roles "*" -- "*" Authorities : has authorities
+Employees "1" -- "*" LeaveRequest : requests
+Employees "1" -- "1" LeaveBalance : has
+
+' Service dependencies
+UserService --> UserRepository : uses
+UserService --> EmployeeRepository : uses
+UserService --> RoleRepository : uses
+UserService --> AuthorityRepository : uses
+
+EmployeeService --> EmployeeRepository : uses
+EmployeeService --> UserService : uses
+
+LeaveService --> LeaveRequestRepository : uses
+LeaveService --> LeaveBalanceRepository : uses
+LeaveService --> EmployeeRepository : uses
+
+' Controller dependencies
+UserController --> UserService : uses
+EmployeeController --> EmployeeService : uses
+LeaveController --> LeaveService : uses
+AuthController --> AuthenticationService : uses
+
+' Repository relationships
+UserRepository --|> JpaRepository : extends
+EmployeeRepository --|> JpaRepository : extends
+RoleRepository --|> JpaRepository : extends
+AuthorityRepository --|> JpaRepository : extends
+LeaveRequestRepository --|> JpaRepository : extends
+LeaveBalanceRepository --|> JpaRepository : extends
+
+note right of Users
+  * Implements UserDetails
+  * Auditable entity
+  * Cached queries
+end note
+
+note right of EmployeeService
+  * @Cacheable on read methods
+  * @Transactional on write methods
+  * CSV import/export support
+end note
+
+note bottom of AuthController
+  * Rate limited endpoints
+  * Swagger/OpenAPI docs
+end note
+
+legend right
+  |= Color |= Meaning |
+  | <#E8F4FD> | Entity |
+  | <#F5EEF8> | Repository |
+  | <#F0F9E8> | Service |
+  | <#FEF5E7> | Controller |
+endlegend
+
+@enduml

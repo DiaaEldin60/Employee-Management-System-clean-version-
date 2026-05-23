@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Employee Management System - Settings">
+    <title>Settings - Employee Management System</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Common CSS -->
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-users-cog me-2"></i>EMS</h3>
+        </div>
+        <div class="sidebar-menu">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                    <a class="nav-link" href="/employees">
+                        <i class="fas fa-users"></i> Employees
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/leave-requests">
+                        <i class="fas fa-calendar-alt"></i> Leave Requests
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" href="/users">
+                        <i class="fas fa-user-shield"></i> Users
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                    <a class="nav-link" href="/reports">
+                        <i class="fas fa-chart-bar"></i> Reports
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/settings">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navigation -->
+        <nav class="top-nav">
+            <div class="d-flex align-items-center">
+                <button class="sidebar-toggle me-3" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="search-bar">
+                    <input type="text" class="form-control" placeholder="Search settings...">
+                </div>
+            </div>
+            <div class="user-menu">
+                <div class="dropdown">
+                    <button class="btn btn-light position-relative dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-bell"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><h6 class="dropdown-header">Notifications</h6></li>
+                        <li><a class="dropdown-item" href="#">System update available</a></li>
+                        <li><a class="dropdown-item" href="#">Backup completed</a></li>
+                        <li><a class="dropdown-item" href="#">Security alert</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/settings">View all notifications</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-2"></i>
+                        <span th:text="${username}">Admin User</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/settings"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="/logout" method="post" style="display: inline;">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                                <button type="submit" class="dropdown-item" style="border: none; background: none; width: 100%; text-align: left; cursor: pointer;">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Page Content -->
+        <div class="container-fluid p-4">
+            <!-- Page Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1 class="h3 mb-3">Settings</h1>
+                    <p class="text-muted">Manage system settings and preferences.</p>
+                </div>
+            </div>
+
+            <!-- Settings Navigation -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <ul class="nav nav-pills settings-nav">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#profile">Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#security">Security</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#notifications">Notifications</a>
+                        </li>
+                        <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                            <a class="nav-link" href="#system">System</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Profile Settings -->
+            <div class="row mb-4" id="profile">
+                <div class="col-12">
+                    <div class="table-container">
+                        <h5 class="card-title mb-3">Profile Settings</h5>
+
+                        <!-- Alert Messages -->
+                        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                            <span th:text="${message}">Success message</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span th:text="${error}">Error message</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+
+                        <form th:action="@{/settings/update-profile}" method="post">
+                            <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="firstName" class="form-label">First Name</label>
+                                    <input type="text" class="form-control" id="firstName" name="firstName" th:value="${firstName}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="lastName" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="lastName" name="lastName" th:value="${lastName}">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" th:value="${email}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" th:value="${username}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="roles" class="form-label">Roles</label>
+                                <input type="text" class="form-control" id="roles" th:value="${roles}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" th:value="${phone}">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="row mb-4" id="security">
+                <div class="col-12">
+                    <div class="table-container">
+                        <h5 class="card-title mb-3">Security Settings</h5>
+
+                        <!-- Alert Messages -->
+                        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                            <span th:text="${message}">Success message</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span th:text="${error}">Error message</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+
+                        <form th:action="@{/settings/change-password}" method="post">
+                            <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                            <div class="mb-3">
+                                <label for="currentPassword" class="form-label">Current Password</label>
+                                <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="newPassword" name="newPassword" required minlength="6">
+                                <div class="form-text">Password must be at least 6 characters long</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required minlength="6">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update Password</button>
+                        </form>
+
+                        <hr class="my-4">
+
+                        <h6 class="mb-3">Forgot your password?</h6>
+                        <a href="/forgot-password" class="btn btn-outline-secondary">Reset Password via Email</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Settings -->
+            <div class="row mb-4" id="notifications">
+                <div class="col-12">
+                    <div class="table-container">
+                        <h5 class="card-title mb-3">Notification Settings</h5>
+                        <form>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                <label class="form-check-label" for="emailNotifications">
+                                    Email Notifications
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="pushNotifications" checked>
+                                <label class="form-check-label" for="pushNotifications">
+                                    Push Notifications
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="smsNotifications">
+                                <label class="form-check-label" for="smsNotifications">
+                                    SMS Notifications
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Preferences</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Settings (Admin only) -->
+            <div class="row mb-4" id="system" sec:authorize="hasRole('ADMIN')">
+                <div class="col-12">
+                    <div class="table-container">
+                        <h5 class="card-title mb-3">System Settings</h5>
+                        <form>
+                            <div class="mb-3">
+                                <label for="systemName" class="form-label">System Name</label>
+                                <input type="text" class="form-control" id="systemName" value="Employee Management System">
+                            </div>
+                            <div class="mb-3">
+                                <label for="defaultRole" class="form-label">Default Role for New Users</label>
+                                <select class="form-select" id="defaultRole">
+                                    <option value="EMPLOYEE" selected>Employee</option>
+                                    <option value="MANAGER">Manager</option>
+                                    <option value="ADMIN">Admin</option>
+                                </select>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="enableRegistration" checked>
+                                <label class="form-check-label" for="enableRegistration">
+                                    Enable User Registration
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="enableEmailVerification" checked>
+                                <label class="form-check-label" for="enableEmailVerification">
+                                    Require Email Verification
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save System Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Common JavaScript -->
+    <script th:src="@{/js/common.js}"></script>
+    
+    <!-- Settings-specific JavaScript -->
+    <script th:src="@{/js/settings.js}"></script>
+</body>
+</html>

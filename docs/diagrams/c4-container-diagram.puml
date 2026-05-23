@@ -1,0 +1,55 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title C4 Container Diagram - Employee Management System
+
+Person(admin, "Administrator", "Manages employees and system")
+Person(employee, "Employee", "Views profile and requests leave")
+Person(manager, "Manager", "Manages team and approvals")
+
+System_Boundary(ems, "Employee Management System") {
+    Container(web_app, "Web Application", "Thymeleaf + HTML/CSS/JS", "Server-side rendered UI")
+
+    Container_Boundary(api, "REST API") {
+        Container(api_app, "API Application", "Spring Boot", "RESTful API endpoints")
+        Container(security, "Security Layer", "Spring Security", "Authentication & Authorization")
+        Container(cache, "Cache Layer", "Ehcache", "Application caching")
+    }
+
+    ContainerDb(db, "Database", "MySQL", "Stores employees, users, roles, leave data")
+
+    Container(actuator, "Actuator", "Spring Boot Actuator", "Health checks, metrics")
+}
+
+System_Ext(email, "Email Service", "Gmail SMTP")
+System_Ext(prometheus, "Prometheus", "Metrics collection")
+System_Ext(grafana, "Grafana", "Visualization & Dashboards")
+
+Rel(admin, web_app, "Uses", "HTTPS")
+Rel(employee, web_app, "Uses", "HTTPS")
+Rel(manager, web_app, "Uses", "HTTPS")
+
+Rel(web_app, api_app, "Calls API", "JSON/HTTPS")
+
+Rel(api_app, security, "Secured by", "Spring Security")
+Rel(api_app, cache, "Uses for caching", "Spring Cache")
+Rel(api_app, db, "Reads/Writes", "JDBC")
+
+Rel(api_app, email, "Sends emails via", "SMTP")
+Rel(actuator, prometheus, "Publishes metrics to", "HTTP/8081")
+Rel(prometheus, grafana, "Visualized in", "HTTP")
+
+' Browser/Client connections
+Rel(admin, api_app, "Direct API access", "HTTPS (optional)")
+
+Container_Boundary(browser, "Browser") {
+    Container(single_page, "Web Browser", "Chrome/Firefox/Edge", "Renders HTML and executes JavaScript")
+}
+
+Rel(single_page, web_app, "Requests pages from", "HTTPS")
+
+SHOW_LEGEND()
+
+@enduml

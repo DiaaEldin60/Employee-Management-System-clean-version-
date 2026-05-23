@@ -1,0 +1,90 @@
+@startuml
+!theme plain
+
+title Deployment Diagram - Employee Management System
+
+node "Client Browser" as client {
+    [Chrome/Firefox/Edge]
+}
+
+node "Application Server" as app_server {
+    package "Docker Container - EMS App" {
+        [Spring Boot Application] as spring_app
+        [Embedded Tomcat] as tomcat
+    }
+    
+    package "Ehcache" {
+        [In-Memory Cache] as cache
+    }
+}
+
+node "Database Server" as db_server {
+    package "Docker Container - MySQL" {
+        [MySQL 8.x] as mysql
+        database "EMS_Project" as ems_db
+    }
+}
+
+node "Monitoring Server" as monitoring {
+    package "Docker Container - Prometheus" {
+        [Prometheus] as prometheus
+    }
+    
+    package "Docker Container - Grafana" {
+        [Grafana] as grafana
+    }
+}
+
+node "Email Service" as email {
+    [Gmail SMTP] as gmail
+}
+
+cloud "External Services" {
+    [SMTP Server] as smtp
+}
+
+' Connections
+client --> tomcat : HTTPS (Port 8080)
+tomcat --> spring_app : Internal
+spring_app --> cache : Caching API
+spring_app --> mysql : JDBC (Port 3306)
+mysql --> ems_db
+
+spring_app --> prometheus : Metrics (Port 8081)
+prometheus --> grafana : Data Source
+
+spring_app --> smtp : SMTP (Port 587)
+smtp --> gmail
+
+' Notes
+note right of spring_app
+  Application Ports:
+  - 8080: Main Application
+  - 8081: Actuator/Prometheus
+end note
+
+note right of mysql
+  Database Schema:
+  - Users & Authentication
+  - Employee Records
+  - Leave Management
+  - Audit Tables
+end note
+
+note bottom of monitoring
+  Monitoring Stack:
+  - Prometheus scrapes metrics
+  - Grafana visualizes dashboards
+  - Alerts on health issues
+end note
+
+legend right
+  |= Component |= Technology |
+  | Spring Boot | Java 21, Spring 6 |
+  | Database | MySQL 8.x |
+  | Cache | Ehcache 3.x |
+  | Monitoring | Prometheus + Grafana |
+  | Email | Gmail SMTP |
+endlegend
+
+@enduml

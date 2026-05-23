@@ -1,0 +1,590 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "ems-dashboard",
+    "title": "Employee Management System - Production Dashboard",
+    "tags": ["spring-boot", "micrometer", "prometheus", "ems"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "refresh": "15s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "application",
+          "type": "query",
+          "query": "label_values(application)",
+          "current": {
+            "text": "ems-backend",
+            "value": "ems-backend"
+          },
+          "refresh": 1
+        },
+        {
+          "name": "instance",
+          "type": "query",
+          "query": "label_values(instance)",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "refresh": 1,
+          "includeAll": true
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "Prometheus",
+          "expr": "resets(process_uptime_seconds[1m]) > 0",
+          "tagKeys": "version",
+          "textFormat": "Application restarted",
+          "iconColor": "rgba(255, 0, 0, 1)"
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Application Status",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "up{application=\"$application\"}",
+            "legendFormat": "{{instance}}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": "",
+            "values": false
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "green", "value": 1}
+              ]
+            },
+            "mappings": [
+              {"options": {"0": {"text": "DOWN", "color": "red"}}, "type": "value"},
+              {"options": {"1": {"text": "UP", "color": "green"}}, "type": "value"}
+            ]
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Uptime",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+        "targets": [
+          {
+            "expr": "process_uptime_seconds{application=\"$application\"}",
+            "legendFormat": "Uptime",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "orientation": "horizontal"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "JVM Memory Used",
+        "type": "gauge",
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "sum(jvm_memory_used_bytes{application=\"$application\", area=\"heap\"}) / sum(jvm_memory_max_bytes{application=\"$application\", area=\"heap\"}) * 100",
+            "legendFormat": "Heap Usage",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 70},
+                {"color": "red", "value": 85}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Active Connections",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+        "targets": [
+          {
+            "expr": "hikaricp_connections_active{application=\"$application\"}",
+            "legendFormat": "Active",
+            "refId": "A"
+          },
+          {
+            "expr": "hikaricp_connections_idle{application=\"$application\"}",
+            "legendFormat": "Idle",
+            "refId": "B"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none"
+        }
+      },
+      {
+        "id": 5,
+        "title": "HTTP Requests / Second",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "targets": [
+          {
+            "expr": "rate(http_server_requests_seconds_count{application=\"$application\"}[5m])",
+            "legendFormat": "{{uri}} - {{method}}",
+            "refId": "A"
+          }
+        ],
+        "xaxis": {"mode": "time"},
+        "yaxes": [
+          {"label": "req/s", "min": 0}
+        ],
+        "legend": {"show": true, "position": "right"}
+      },
+      {
+        "id": 6,
+        "title": "HTTP Response Times (p95/p99)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_server_requests_seconds_bucket{application=\"$application\"}[5m]))",
+            "legendFormat": "p95 - {{uri}}",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(http_server_requests_seconds_bucket{application=\"$application\"}[5m]))",
+            "legendFormat": "p99 - {{uri}}",
+            "refId": "B"
+          }
+        ],
+        "xaxis": {"mode": "time"},
+        "yaxes": [
+          {"label": "seconds", "format": "s", "min": 0}
+        ],
+        "legend": {"show": true, "position": "right"}
+      },
+      {
+        "id": 7,
+        "title": "JVM Heap Memory",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+        "targets": [
+          {
+            "expr": "jvm_memory_used_bytes{application=\"$application\", area=\"heap\"}",
+            "legendFormat": "Used - {{id}}",
+            "refId": "A"
+          },
+          {
+            "expr": "jvm_memory_committed_bytes{application=\"$application\", area=\"heap\"}",
+            "legendFormat": "Committed - {{id}}",
+            "refId": "B"
+          },
+          {
+            "expr": "jvm_memory_max_bytes{application=\"$application\", area=\"heap\"}",
+            "legendFormat": "Max - {{id}}",
+            "refId": "C"
+          }
+        ],
+        "xaxis": {"mode": "time"},
+        "yaxes": [
+          {"label": "bytes", "format": "bytes", "min": 0}
+        ],
+        "legend": {"show": true, "position": "right"}
+      },
+      {
+        "id": 8,
+        "title": "JVM Non-Heap Memory",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+        "targets": [
+          {
+            "expr": "jvm_memory_used_bytes{application=\"$application\", area=\"nonheap\"}",
+            "legendFormat": "Used - {{id}}",
+            "refId": "A"
+          },
+          {
+            "expr": "jvm_memory_committed_bytes{application=\"$application\", area=\"nonheap\"}",
+            "legendFormat": "Committed - {{id}}",
+            "refId": "B"
+          }
+        ],
+        "xaxis": {"mode": "time"},
+        "yaxes": [
+          {"label": "bytes", "format": "bytes", "min": 0}
+        ],
+        "legend": {"show": true, "position": "right"}
+      },
+      {
+        "id": 9,
+        "title": "JVM Threads",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+        "targets": [
+          {
+            "expr": "jvm_threads_live_threads{application=\"$application\"}",
+            "legendFormat": "Live",
+            "refId": "A"
+          },
+          {
+            "expr": "jvm_threads_daemon_threads{application=\"$application\"}",
+            "legendFormat": "Daemon",
+            "refId": "B"
+          },
+          {
+            "expr": "jvm_threads_peak_threads{application=\"$application\"}",
+            "legendFormat": "Peak",
+            "refId": "C"
+          }
+        ],
+        "xaxis": {"mode": "time"},
+        "yaxes": [
+          {"label": "count", "min": 0}
+        ],
+        "legend": {"show": true, "position": "right"}
+      },
+      {
+        "id": 10,
+        "title": "GC Pause Duration",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+        "targets": [
+          {
+            "expr": "rate(jvm_gc_pause_seconds_sum{application=\"$application\"}[5m]) / rate(jvm_gc_pause_seconds_count{application=\"$application\"}[5m])",
+            "legendFormat": "Avg GC Pause - {{gc}}",
+            "refId": "A"
+          }
+        ],
+        "xaxis": {"mode": "time"},
+        "yaxes": [
+          {"label": "seconds", "format": "s", "min": 0}
+        ],
+        "legend": {"show": true, "position": "right"}
+      },
+      {
+        "id": 11,
+        "title": "Database Connection Pool (HikariCP)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 28},
+        "targets": [
+          {
+            "expr": "hikaricp_connections_active{application=\"$application\"}",
+            "legendFormat": "Active",
+            "refId": "A"
+          },
+          {
+            "expr": "hikaricp_connections_idle{application=\"$application\"}",
+            "legendFormat": "Idle",
+            "refId": "B"
+          },
+          {
+            "expr": "hikaricp_connections_pending_threads{application=\"$application\"}",
+            "legendFormat": "Pending",
+            "refId": "C"
+          },
+          {
+            "expr": "hikaricp_connections_max{application=\"$application\"}",
+            "legendFormat": "Max",
+            "refId": "D"
+          }
+        ],
+        "xaxis": {"mode": "time"},
+        "yaxes": [
+          {"label": "connections", "min": 0}
+        ],
+        "legend": {"show": true, "position": "right"}
+      },
+      {
+        "id": 12,
+        "title": "Database Connection Wait Time",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 28},
+        "targets": [
+          {
+            "expr": "hikaricp_connections_usage_seconds_sum{application=\"$application\"} / hikaricp_connections_usage_seconds_count{application=\"$application\"}",
+            "legendFormat": "Avg Usage Time",
+            "refId": "A"
+          },
+          {
+            "expr": "hikaricp_connections_acquire_seconds_sum{application=\"$application\"} / hikaricp_connections_acquire_seconds_count{application=\"$application\"}",
+            "legendFormat": "Avg Acquire Time",
+            "refId": "B"
+          }
+        ],
+        "xaxis": {"mode": "time"},
+        "yaxes": [
+          {"label": "seconds", "format": "s", "min": 0}
+        ],
+        "legend": {"show": true, "position": "right"}
+      },
+      {
+        "id": 13,
+        "title": "Cache Statistics (Ehcache)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 36},
+        "targets": [
+          {
+            "expr": "cache_gets_total{application=\"$application\", result=\"hit\"}",
+            "legendFormat": "Hits - {{cache}}",
+            "refId": "A"
+          },
+          {
+            "expr": "cache_gets_total{application=\"$application\", result=\"miss\"}",
+            "legendFormat": "Misses - {{cache}}",
+            "refId": "B"
+          }
+        ],
+        "xaxis": {"mode": "time"},
+        "yaxes": [
+          {"label": "count", "min": 0}
+        ],
+        "legend": {"show": true, "position": "right"}
+      },
+      {
+        "id": 14,
+        "title": "Cache Hit Ratio",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 36},
+        "targets": [
+          {
+            "expr": "sum(rate(cache_gets_total{application=\"$application\", result=\"hit\"}[5m])) / sum(rate(cache_gets_total{application=\"$application\"}[5m])) * 100",
+            "legendFormat": "Hit Ratio",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "background",
+          "graphMode": "area"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 50},
+                {"color": "green", "value": 80}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 15,
+        "title": "CPU Usage",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 44},
+        "targets": [
+          {
+            "expr": "process_cpu_usage{application=\"$application\"}",
+            "legendFormat": "Process CPU",
+            "refId": "A"
+          },
+          {
+            "expr": "system_cpu_usage{application=\"$application\"}",
+            "legendFormat": "System CPU",
+            "refId": "B"
+          }
+        ],
+        "xaxis": {"mode": "time"},
+        "yaxes": [
+          {"label": "percent", "format": "percentunit", "min": 0, "max": 1}
+        ],
+        "legend": {"show": true, "position": "right"}
+      },
+      {
+        "id": 16,
+        "title": "HTTP Error Rate",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 44},
+        "targets": [
+          {
+            "expr": "sum(rate(http_server_requests_seconds_count{application=\"$application\", status=~\"5..\"}[5m]))",
+            "legendFormat": "5xx Errors",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(rate(http_server_requests_seconds_count{application=\"$application\", status=~\"4..\"}[5m]))",
+            "legendFormat": "4xx Errors",
+            "refId": "B"
+          }
+        ],
+        "xaxis": {"mode": "time"},
+        "yaxes": [
+          {"label": "errors/sec", "min": 0}
+        ],
+        "legend": {"show": true, "position": "right"}
+      },
+      {
+        "id": 17,
+        "title": "Log Events Rate",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 52},
+        "targets": [
+          {
+            "expr": "rate(logback_events_total{application=\"$application\", level=\"error\"}[5m])",
+            "legendFormat": "ERROR",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(logback_events_total{application=\"$application\", level=\"warn\"}[5m])",
+            "legendFormat": "WARN",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(logback_events_total{application=\"$application\", level=\"info\"}[5m])",
+            "legendFormat": "INFO",
+            "refId": "C"
+          }
+        ],
+        "xaxis": {"mode": "time"},
+        "yaxes": [
+          {"label": "events/sec", "min": 0}
+        ],
+        "legend": {"show": true, "position": "right"}
+      },
+      {
+        "id": 18,
+        "title": "Flyway Migrations",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 52},
+        "targets": [
+          {
+            "expr": "flyway_schema_version_info{application=\"$application\"}",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "indexByName": {
+                "version": 0,
+                "description": 1,
+                "type": 2,
+                "installed_on": 3,
+                "execution_time": 4
+              },
+              "renameByName": {
+                "version": "Version",
+                "description": "Description",
+                "type": "Type",
+                "installed_on": "Installed On",
+                "execution_time": "Execution Time (ms)"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 19,
+        "title": "Disk Usage",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 8, "x": 0, "y": 60},
+        "targets": [
+          {
+            "expr": "disk_free_bytes{application=\"$application\"}",
+            "legendFormat": "Free",
+            "refId": "A"
+          },
+          {
+            "expr": "disk_total_bytes{application=\"$application\"}",
+            "legendFormat": "Total",
+            "refId": "B"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes"
+          }
+        }
+      },
+      {
+        "id": 20,
+        "title": "Loaded Classes",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 8, "x": 8, "y": 60},
+        "targets": [
+          {
+            "expr": "jvm_classes_loaded_threads{application=\"$application\"}",
+            "legendFormat": "Loaded",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 21,
+        "title": "File Descriptors",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 8, "x": 16, "y": 60},
+        "targets": [
+          {
+            "expr": "process_files_open_files{application=\"$application\"}",
+            "legendFormat": "Open",
+            "refId": "A"
+          },
+          {
+            "expr": "process_files_max_files{application=\"$application\"}",
+            "legendFormat": "Max",
+            "refId": "B"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area"
+        }
+      }
+    ]
+  }
+}

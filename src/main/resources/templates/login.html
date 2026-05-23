@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+<section>
+
+    <form action="/login" method="post">
+
+        <!-- CSRF -->
+        <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+
+        <h1>Login</h1>
+
+        <!-- FLASH MESSAGE -->
+        <div th:if="${message}" class="success-message" style="color: green; margin-bottom: 15px; text-align: center; padding: 10px; border: 1px solid #4CAF50; background-color: #e8f5e9; border-radius: 5px;">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <span th:text="${message}">Message</span>
+        </div>
+
+        <!-- ERROR -->
+        <p style="color:red;" th:if="${param.error}">
+            Invalid username/email or password
+        </p>
+
+        <!-- SIGNUP SUCCESS -->
+        <p style="color:lightgreen;" th:if="${param.signupSuccess}">
+            Account created successfully! Please login with your credentials.
+        </p>
+
+        <!-- VERIFIED SUCCESS -->
+        <p style="color:lightgreen;" th:if="${param.verified}">
+            Account verified successfully. Please login.
+        </p>
+
+        <!-- RESET SUCCESS -->
+        <p style="color:lightgreen;" th:if="${param.resetSuccess}">
+            Password updated successfully
+        </p>
+
+        <!-- EMAIL NOT VERIFIED ERROR -->
+        <div th:if="${error}" class="error-message" style="color: red; margin-bottom: 15px; text-align: center; padding: 10px; border: 1px solid #ff6b6b; background-color: #ffe0e0; border-radius: 5px;">
+            <ion-icon name="warning-outline"></ion-icon>
+            <span th:text="${error}">Error message</span>
+        </div>
+
+        <!-- VERIFY BUTTON -->
+        <div th:if="${showVerifyButton}" style="text-align: center; margin-bottom: 20px;">
+            <form action="/verify-email" method="get">
+                <button type="submit" style="background: #007bff; border: none; color: white; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px;">
+                    Verify Your Email
+                </button>
+            </form>
+        </div>
+
+        <!-- USERNAME OR EMAIL -->
+        <div class="inputbox">
+            <ion-icon name="person-outline"></ion-icon>
+            <input type="text" name="username" required>
+            <label>Username or Email</label>
+        </div>
+
+        <!-- PASSWORD -->
+        <div class="inputbox">
+            <ion-icon name="lock-closed-outline"></ion-icon>
+            <input type="password" name="password" required>
+            <label>Password</label>
+        </div>
+
+        <button type="submit">Login</button>
+
+        <div class="register">
+            <p><a href="/forgot-password">Forgot Password?</a></p>
+        </div>
+
+    </form>
+
+</section>
+</body>
+</html>

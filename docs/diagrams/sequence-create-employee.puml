@@ -1,0 +1,97 @@
+@startuml
+!theme plain
+
+autonumber
+
+title Create Employee with User - Sequence Diagram
+
+actor "Admin User" as admin
+participant "EmployeeController" as controller
+participant "EmployeeService" as emp_service
+participant "UserService" as user_service
+participant "RoleRepository" as role_repo
+participant "UserRepository" as user_repo
+participant "EmployeeRepository" as emp_repo
+participant "EmailService" as email_service
+participant "Ehcache" as cache
+database "MySQL" as db
+
+admin -> controller : POST /api/v1/employees
+activate controller
+
+controller -> emp_service : createEmployeeWithUser(dto)
+activate emp_service
+
+' Step 1: Create user first
+emp_service -> user_service : createUserWithoutEmployee(username, password, roles, authorities)
+activate user_service
+
+user_service -> user_repo : findByUserName(username)
+activate user_repo
+user_repo -> db : SELECT * FROM users WHERE username=?
+activate db
+db --> user_repo : null (user not exists)
+deactivate db
+user_repo --> user_service : Optional.empty()
+deactivate user_repo
+
+' Get or create role
+user_service -> role_repo : findByRole("EMPLOYEE")
+activate role_repo
+role_repo -> db : SELECT * FROM roles WHERE role='EMPLOYEE'
+activate db
+db --> role_repo : Role{id=1, role='EMPLOYEE'}
+deactivate db
+role_repo --> user_service : Optional.of(Role)
+deactivate role_repo
+
+' Save user
+user_service -> user_repo : save(user)
+activate user_repo
+user_repo -> db : INSERT INTO users (username, password, enabled, ...) VALUES (...)
+activate db
+db --> user_repo : User{id=100}
+deactivate db
+user_repo --> user_service : Saved User
+deactivate user_repo
+
+' Cache eviction
+user_service -> cache : evict("users")
+activate cache
+cache --> user_service : OK
+deactivate cache
+
+user_service --> emp_service : User{id=100}
+deactivate user_service
+
+' Step 2: Create employee with user reference
+emp_service -> emp_service : Create employee object
+emp_service -> emp_service : Set user reference
+
+emp_service -> emp_repo : save(employee)
+activate emp_repo
+emp_repo -> db : INSERT INTO employees (first_name, last_name, email, user_id, ...) VALUES (...)
+activate db
+db --> emp_repo : Employee{id=50}
+deactivate db
+emp_repo --> emp_service : Saved Employee
+deactivate emp_repo
+
+' Cache eviction
+emp_service -> cache : evict("employees")
+activate cache
+cache --> emp_service : OK
+deactivate cache
+
+emp_service --> controller : Employee{id=50}
+deactivate emp_service
+
+controller -> email_service : sendWelcomeEmailAsync(employee.email)
+activate email_service
+email_service --> controller : Scheduled
+deactivate email_service
+
+controller --> admin : 201 Created
+note right of admin: Location: /api/v1/employees/50\nBody: EmployeeDto
+
+@enduml

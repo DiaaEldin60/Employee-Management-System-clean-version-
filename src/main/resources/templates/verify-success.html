@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Verified Successfully</title>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .success-container {
+            text-align: center;
+            padding: 40px;
+        }
+        .success-icon {
+            font-size: 80px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+        .success-message {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .redirect-message {
+            font-size: 16px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+<section>
+
+    <div class="success-container">
+        <ion-icon name="checkmark-circle-outline" class="success-icon"></ion-icon>
+        <h1 class="success-message">Email Verified Successfully!</h1>
+        <p class="redirect-message">Redirecting to login page in <span id="countdown">3</span> seconds...</p>
+    </div>
+
+</section>
+
+<script>
+    let countdown = 3;
+    const countdownElement = document.getElementById('countdown');
+    
+    const timer = setInterval(() => {
+        countdown--;
+        countdownElement.textContent = countdown;
+        
+        if (countdown <= 0) {
+            clearInterval(timer);
+            window.location.href = '/login';
+        }
+    }, 1000);
+</script>
+
+</body>
+</html>
